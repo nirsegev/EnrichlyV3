@@ -1,6 +1,6 @@
-function App() {
-    const [loadingStates, setLoadingStates] = React.useState({});
-    const boxes = Array.from({ length: 10 }, (_, index) => index + 1);
+// Box component for each Hello World item
+function Box({ number }) {
+    const [isLoading, setIsLoading] = React.useState(false);
     
     const boxStyle = {
         border: '1px solid #e0e0e0',
@@ -14,16 +14,6 @@ function App() {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '150px'
-    };
-
-    const containerStyle = {
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: '20px',
-        padding: '20px',
-        maxWidth: '1200px',
-        margin: '0 auto'
     };
 
     const titleContainerStyle = {
@@ -51,16 +41,6 @@ function App() {
         animation: 'spin 1s linear infinite',
         display: 'inline-block'
     };
-
-    // Add the spinning animation
-    const styleSheet = document.createElement("style");
-    styleSheet.textContent = `
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    `;
-    document.head.appendChild(styleSheet);
 
     const descriptionStyle = {
         fontSize: '14px',
@@ -92,14 +72,14 @@ function App() {
         fontSize: '12px'
     };
 
-    const handleClick = async (boxNumber) => {
-        console.log(`Starting task for box ${boxNumber}...`);
+    const handleClick = async (e) => {
+        e.preventDefault();
+        console.log(`Starting task for box ${number}...`);
         
-        // Set loading state for this box
-        setLoadingStates(prev => ({ ...prev, [boxNumber]: true }));
+        setIsLoading(true);
         
         try {
-            const response = await fetch(`/api/task/${boxNumber}`);
+            const response = await fetch(`/api/task/${number}`);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
@@ -109,41 +89,71 @@ function App() {
             console.error('Task failed:', error);
             alert('Operation failed. Please try again.');
         } finally {
-            // Clear loading state
-            setLoadingStates(prev => ({ ...prev, [boxNumber]: false }));
+            setIsLoading(false);
         }
     };
 
     return (
+        <div style={boxStyle}>
+            <div style={titleContainerStyle}>
+                <a 
+                    href="#" 
+                    onClick={handleClick}
+                    style={titleStyle}
+                >
+                    Hello World #{number}
+                </a>
+                {isLoading && (
+                    <div style={loadingIndicatorStyle} />
+                )}
+            </div>
+            <p style={descriptionStyle}>
+                A sample description text that gives more context about this Hello World item.
+            </p>
+            <div>
+                <span style={tagStyle}>AI</span>
+                <span style={tagStyle}>Mindfulness</span>
+            </div>
+            <div style={footerStyle}>
+                <span style={timeStyle}>2 days ago</span>
+            </div>
+        </div>
+    );
+}
+
+// Main App component
+function App() {
+    // Add the spinning animation
+    React.useEffect(() => {
+        const styleSheet = document.createElement("style");
+        styleSheet.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // Cleanup function to remove the style when component unmounts
+        return () => {
+            document.head.removeChild(styleSheet);
+        };
+    }, []); // Empty dependency array means this runs once on mount
+
+    const containerStyle = {
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: '20px',
+        padding: '20px',
+        maxWidth: '1200px',
+        margin: '0 auto'
+    };
+
+    return (
         <div style={containerStyle}>
-            {boxes.map((box) => (
-                <div key={box} style={boxStyle}>
-                    <div style={titleContainerStyle}>
-                        <a 
-                            href="#" 
-                            onClick={(e) => {
-                                e.preventDefault();
-                                handleClick(box);
-                            }} 
-                            style={titleStyle}
-                        >
-                            Hello World #{box}
-                        </a>
-                        {loadingStates[box] && (
-                            <div style={loadingIndicatorStyle} />
-                        )}
-                    </div>
-                    <p style={descriptionStyle}>
-                        A sample description text that gives more context about this Hello World item.
-                    </p>
-                    <div>
-                        <span style={tagStyle}>AI</span>
-                        <span style={tagStyle}>Mindfulness</span>
-                    </div>
-                    <div style={footerStyle}>
-                        <span style={timeStyle}>2 days ago</span>
-                    </div>
-                </div>
+            {Array.from({ length: 10 }, (_, index) => (
+                <Box key={index + 1} number={index + 1} />
             ))}
         </div>
     );
