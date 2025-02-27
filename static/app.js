@@ -51,7 +51,7 @@ function App() {
     const footerStyle = {
         marginTop: 'auto',
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'center',
         paddingTop: '10px',
         borderTop: '1px solid #f0f0f0'
@@ -60,15 +60,6 @@ function App() {
     const timeStyle = {
         color: '#999',
         fontSize: '12px'
-    };
-
-    const deleteButtonStyle = {
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        fontSize: '20px',
-        color: '#ccc',
-        padding: '0 5px'
     };
 
     return (
@@ -85,7 +76,6 @@ function App() {
                     </div>
                     <div style={footerStyle}>
                         <span style={timeStyle}>2 days ago</span>
-                        <button style={deleteButtonStyle}>×</button>
                     </div>
                 </div>
             ))}
