@@ -84,14 +84,14 @@ function Box({ number }) {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            if (window.Telegram?.WebApp) {
+            if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.showAlert(data.message);
             } else {
                 alert(data.message);
             }
         } catch (error) {
             console.error('Task failed:', error);
-            if (window.Telegram?.WebApp) {
+            if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.showAlert('Operation failed. Please try again.');
             } else {
                 alert('Operation failed. Please try again.');
@@ -133,7 +133,7 @@ function Box({ number }) {
 function App() {
     React.useEffect(() => {
         // Initialize Telegram Web App
-        if (window.Telegram?.WebApp) {
+        if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
         }
