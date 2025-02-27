@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import os
@@ -6,6 +6,9 @@ import asyncio
 from datetime import datetime
 import logging
 from fastapi.background import BackgroundTasks
+import hashlib
+import hmac
+import json
 
 # Set up logging
 logging.basicConfig(
@@ -22,18 +25,41 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Global variable to store the background task
 health_check_task = None
 
-async def periodic_health_check():
-    while True:
-        try:
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            logger.info(f"Periodic health check successful at {current_time}")
-            
-            # Wait for 60 seconds before next check
-            await asyncio.sleep(60)
-            
-        except Exception as e:
-            logger.error(f"Periodic health check failed: {str(e)}")
-            await asyncio.sleep(60)  # Still wait before retrying
+# Get your bot token from environment variable
+BOT_TOKEN = os.getenv('BOT_TOKEN', '')
+
+def validate_telegram_webapp_data(init_data: str) -> bool:
+    try:
+        # Parse the init_data string
+        data_dict = dict(param.split('=') for param in init_data.split('&'))
+        
+        if 'hash' not in data_dict:
+            return False
+
+        # Get the hash from the data
+        received_hash = data_dict.pop('hash')
+        
+        # Sort the data alphabetically
+        data_check_string = '\n'.join(f'{k}={v}' for k, v in sorted(data_dict.items()))
+        
+        # Create a secret key by using HMAC-SHA256 with bot token
+        secret_key = hmac.new(
+            key=b'WebAppData',
+            msg=BOT_TOKEN.encode(),
+            digestmod=hashlib.sha256
+        ).digest()
+        
+        # Calculate the hash
+        calculated_hash = hmac.new(
+            key=secret_key,
+            msg=data_check_string.encode(),
+            digestmod=hashlib.sha256
+        ).hexdigest()
+        
+        return calculated_hash == received_hash
+    except Exception as e:
+        logger.error(f"Validation error: {str(e)}")
+        return False
 
 @app.on_event("startup")
 async def startup_event():
@@ -52,7 +78,13 @@ async def shutdown_event():
             logger.info("Periodic health check task cancelled")
 
 @app.get("/", response_class=HTMLResponse)
-async def read_index():
+async def read_index(request: Request):
+    # Get the Telegram Web App init data from query parameters
+    init_data = request.query_params.get('tgWebAppData')
+    
+    if init_data and not validate_telegram_webapp_data(init_data):
+        raise HTTPException(status_code=403, detail="Invalid Telegram Web App data")
+    
     with open(os.path.join("static", "index.html")) as f: 
         return HTMLResponse(content=f.read(), status_code=200)
 
@@ -84,3 +116,16 @@ async def health_check():
                 "error": str(e)
             }
         )
+
+async def periodic_health_check():
+    while True:
+        try:
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            logger.info(f"Periodic health check successful at {current_time}")
+            
+            # Wait for 60 seconds before next check
+            await asyncio.sleep(60)
+            
+        except Exception as e:
+            logger.error(f"Periodic health check failed: {str(e)}")
+            await asyncio.sleep(60)  # Still wait before retrying
