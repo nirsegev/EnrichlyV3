@@ -29,7 +29,9 @@ function App() {
         fontSize: '18px',
         color: '#0066cc',
         margin: '0 0 10px 0',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        textDecoration: 'none',
+        cursor: 'pointer'
     };
 
     const descriptionStyle = {
@@ -62,11 +64,36 @@ function App() {
         fontSize: '12px'
     };
 
+    const handleClick = async (boxNumber) => {
+        console.log(`Starting task for box ${boxNumber}...`);
+        
+        try {
+            const response = await fetch(`/api/task/${boxNumber}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            alert(data.message);
+        } catch (error) {
+            console.error('Task failed:', error);
+            alert('Operation failed. Please try again.');
+        }
+    };
+
     return (
         <div style={containerStyle}>
             {boxes.map((box) => (
                 <div key={box} style={boxStyle}>
-                    <h2 style={titleStyle}>Hello World #{box}</h2>
+                    <a 
+                        href="#" 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleClick(box);
+                        }} 
+                        style={titleStyle}
+                    >
+                        Hello World #{box}
+                    </a>
                     <p style={descriptionStyle}>
                         A sample description text that gives more context about this Hello World item.
                     </p>
