@@ -1,4 +1,5 @@
 function App() {
+    const [loadingStates, setLoadingStates] = React.useState({});
     const boxes = Array.from({ length: 10 }, (_, index) => index + 1);
     
     const boxStyle = {
@@ -25,14 +26,41 @@ function App() {
         margin: '0 auto'
     };
 
+    const titleContainerStyle = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        marginBottom: '10px'
+    };
+
     const titleStyle = {
         fontSize: '18px',
         color: '#0066cc',
-        margin: '0 0 10px 0',
+        margin: '0',
         fontWeight: 'bold',
         textDecoration: 'none',
         cursor: 'pointer'
     };
+
+    const loadingIndicatorStyle = {
+        width: '20px',
+        height: '20px',
+        border: '2px solid #f3f3f3',
+        borderTop: '2px solid #0066cc',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        display: 'inline-block'
+    };
+
+    // Add the spinning animation
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(styleSheet);
 
     const descriptionStyle = {
         fontSize: '14px',
@@ -67,6 +95,9 @@ function App() {
     const handleClick = async (boxNumber) => {
         console.log(`Starting task for box ${boxNumber}...`);
         
+        // Set loading state for this box
+        setLoadingStates(prev => ({ ...prev, [boxNumber]: true }));
+        
         try {
             const response = await fetch(`/api/task/${boxNumber}`);
             if (!response.ok) {
@@ -77,6 +108,9 @@ function App() {
         } catch (error) {
             console.error('Task failed:', error);
             alert('Operation failed. Please try again.');
+        } finally {
+            // Clear loading state
+            setLoadingStates(prev => ({ ...prev, [boxNumber]: false }));
         }
     };
 
@@ -84,16 +118,21 @@ function App() {
         <div style={containerStyle}>
             {boxes.map((box) => (
                 <div key={box} style={boxStyle}>
-                    <a 
-                        href="#" 
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleClick(box);
-                        }} 
-                        style={titleStyle}
-                    >
-                        Hello World #{box}
-                    </a>
+                    <div style={titleContainerStyle}>
+                        <a 
+                            href="#" 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleClick(box);
+                            }} 
+                            style={titleStyle}
+                        >
+                            Hello World #{box}
+                        </a>
+                        {loadingStates[box] && (
+                            <div style={loadingIndicatorStyle} />
+                        )}
+                    </div>
                     <p style={descriptionStyle}>
                         A sample description text that gives more context about this Hello World item.
                     </p>
