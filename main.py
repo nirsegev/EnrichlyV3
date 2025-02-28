@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import os
@@ -9,6 +9,7 @@ from fastapi.background import BackgroundTasks
 import hashlib
 import hmac
 import json
+from config import get_settings, Settings
 
 # Set up logging
 logging.basicConfig(
@@ -129,3 +130,11 @@ async def periodic_health_check():
         except Exception as e:
             logger.error(f"Periodic health check failed: {str(e)}")
             await asyncio.sleep(60)  # Still wait before retrying
+
+@app.get("/info")
+async def info(settings: Settings = Depends(get_settings)):
+    return {
+        "env": settings.ENV,
+        "debug": settings.DEBUG,
+        "links_history_path": str(settings.LINKS_HISTORY_PATH)
+    }

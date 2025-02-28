@@ -3,12 +3,14 @@ import requests
 from typing import Dict, Any
 import os
 from .models import ProductData
+from config import get_settings
 
 async def fetch_from_soax_api(link: str) -> ProductData:
     """Fetch data using SOAX API for Amazon links."""
+    settings = get_settings()
     print("Using SOAX scraping API for Amazon link.")
     api_url = f"https://scraping.soax.com/v1/request?param={link}&function=getProduct&sync=true"
-    headers = {"X-SOAX-API-Secret": os.getenv("X_SOAX_API_SECRET")}
+    headers = {"X-SOAX-API-Secret": settings.X_SOAX_API_SECRET}
 
     try:
         response = requests.get(api_url, headers=headers, timeout=60)

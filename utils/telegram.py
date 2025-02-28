@@ -1,9 +1,11 @@
 import os
 import httpx
+from config import get_settings
 
 async def send_message_with_buttons(chat_id: int, text: str, buttons: dict):
     """Send a message with inline keyboard buttons."""
-    url = os.getenv("TELEGRAM_API_URL") + "sendMessage"
+    settings = get_settings()
+    url = settings.TELEGRAM_API_URL + "sendMessage"
     payload = {"chat_id": chat_id, "text": text, "reply_markup": buttons}
 
     print(

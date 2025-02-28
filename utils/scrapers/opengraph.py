@@ -2,11 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 import os
 from .models import ProductData
+from config import get_settings
 
 async def fetch_opengraph_metadata(link: str) -> ProductData:
     """Fallback: Fetch OpenGraph metadata."""
     print("Using OpenGraph metadata extraction.")
-    headers = {"X-SOAX-API-Secret": os.getenv("X_SOAX_API_SECRET")}
+    settings = get_settings()
+    headers = {"X-SOAX-API-Secret": settings.X_SOAX_API_SECRET}
     print("headers: ", headers)
     soax_unblocker_link = (
         f"https://scraping.soax.com/v1/unblocker/html?xhr=false&url={link}"
