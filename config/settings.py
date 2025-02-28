@@ -2,12 +2,17 @@ from pathlib import Path
 import os
 from functools import lru_cache
 from pydantic import BaseSettings
-from dotenv import load_dotenv
 
-# Only load .env locally; Railway sets environment variables automatically
-if os.getenv("RAILWAY_ENV") is None:
-    basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-    load_dotenv(os.path.join(basedir, ".env"))
+# Try to import dotenv, but don't fail if it's not available
+try:
+    from dotenv import load_dotenv
+    # Only load .env locally; Railway sets environment variables automatically
+    if os.getenv("RAILWAY_ENV") is None:
+        basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
+        load_dotenv(os.path.join(basedir, ".env"))
+except ImportError:
+    # In production, we don't need dotenv as environment variables are set differently
+    pass
 
 class Settings(BaseSettings):
     # Environment settings
