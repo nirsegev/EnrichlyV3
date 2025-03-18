@@ -10,7 +10,7 @@ import hashlib
 import hmac
 import json
 from config import get_settings, Settings
-from routers import links  # Add this import
+from routers import links, management  # Add this import
 
 # Set up logging
 logging.basicConfig(
@@ -142,3 +142,4 @@ async def info(settings: Settings = Depends(get_settings)):
 
 # Add the links router
 app.include_router(links.router, prefix="/api")
+app.include_router(management.router, prefix="/api")
